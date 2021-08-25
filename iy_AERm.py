@@ -11,7 +11,7 @@ import pyarts as py
 import pyarts.workspace
 import datetime
 
-def main(nelem):
+def main(nelem, model="AER"):
     verbosity = 2
     ws = py.workspace.Workspace(verbosity)
     ws.execute_controlfile("general/general.arts")
@@ -74,13 +74,13 @@ def main(nelem):
     )
 
     ws.ReadLBLRTM(
-        filename="/scratch/uni/u237/data/catalogue/aer/aer_v_3.2/line_file/aer_v_3.2",
+        filename="aer_v_3.2",
         fmin=0.0,
-        fmax=float(1e99),
+        fmax=float(2e12),
         globalquantumnumbers="",
         localquantumnumbers="",
-        normalization_option="None",
-        mirroring_option="None",
+        normalization_option="SFS",
+        mirroring_option="Lorentz",
         population_option="LTE",
         lineshapetype_option="VP",
         cutoff_option="None",
@@ -206,16 +206,12 @@ def main(nelem):
     #Exit
     
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
-    
-    # out = ( f_grid, p_grid, z_field, t_field, vmr H20, 
-    # abs H20, abs O2, abs[f,z], PlacnkBT )
-    ws.WriteXMLIndexed( "ascii", ws.ybatch_index, ws.out, "Output/" + tt_time + "_out" )
 
 # ====================================================================
 
 # Store results
-    ws.WriteXML( "ascii", ws.f_grid, "Output/" + tt_time + "_fgrid.xml" )
-    ws.WriteXML( "ascii", ws.ybatch_index, "Output/" + tt_time + "_out_ybatch_n.xml" )
+    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml" )
+    ws.WriteXML( "ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml" )
 
     print("Success! We reached the finish!")
 
