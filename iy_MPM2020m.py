@@ -39,7 +39,6 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
     def abs_xsec_agenda(ws):
         ws.Ignore(ws.abs_nlte)
         ws.abs_xsec_per_speciesInit()
-        ws.abs_xsec_per_speciesAddPredefinedO2MPM2020()
         ws.abs_xsec_per_speciesAddConts()
     ws.Copy(ws.abs_xsec_agenda, abs_xsec_agenda)
 
@@ -73,6 +72,7 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
         ws.propmat_clearskyAddXsecAgenda()
         ws.propmat_clearskyAddLines()
         ws.propmat_clearskyForceNegativeToZero()
+        ws.propmat_clearskyAddPredefinedO2MPM2020()
     ws.Copy(ws.propmat_clearsky_agenda, propmat_clearsky_agenda)
     
     # Spectroscopy
