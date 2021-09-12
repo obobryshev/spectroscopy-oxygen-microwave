@@ -6,12 +6,11 @@ Parameters:
 Returns:
 """
 
-import numpy as np
-import pyarts as py
-import pyarts.workspace
-import datetime
 
-def main(nelem=1125, model="O2-TRE05", verbosity = 2):
+def run_arts(nelem=1125, model="O2-TRE05", verbosity=1):
+    import pyarts as py
+    import datetime
+
     ws = py.workspace.Workspace(verbosity)
     ws.execute_controlfile("general/general.arts")
     ws.execute_controlfile("general/continua.arts")
@@ -23,12 +22,12 @@ def main(nelem=1125, model="O2-TRE05", verbosity = 2):
     ws.AtmosphereSet1D()
     ws.IndexSet(ws.stokes_dim, 1)
     ws.StringSet(ws.iy_unit, "PlanckBT")
-    
+
     # monochromatic frequency grid
     # VectorNLinSpace( 	out, nelem, start, stop )
-    ws.VectorNLinSpace( ws.f_grid, nelem, 5e9, 500e9 )
+    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 500e9)
 
-    ########    common_metmm.arts
+    #    common_metmm.arts
     ws.output_file_formatSetZippedAscii()
     ws.NumericSet(ws.ppath_lmax, float(250))
 
@@ -57,7 +56,7 @@ def main(nelem=1125, model="O2-TRE05", verbosity = 2):
     ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 
     # Set propmat_clearsky_agenda to use on-the-fly absorption
-    ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly )
+    ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly)
 
     # Spectroscopy
     species = [
@@ -105,7 +104,6 @@ def main(nelem=1125, model="O2-TRE05", verbosity = 2):
     ws.Extract(ws.z_surface, ws.z_field, 0)
     ws.Extract(ws.t_surface, ws.t_field, 0)
 
-    
     ws.abs_xsec_agenda_checkedCalc()
     ws.lbl_checkedCalc()
 
@@ -114,17 +112,15 @@ def main(nelem=1125, model="O2-TRE05", verbosity = 2):
 
     # No scattering
     ws.cloudboxOff()
-    
+
     # No sensor
     ws.sensorOff()
-    
+
     # Definition of sensor position and LOS
     # ---
-    #MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
-    #MatrixSet( sensor_los, [ 180 ] )
-    ws.VectorSet( ws.rte_pos, 850e3 )
-    ws.VectorSet( ws.rte_los, 180 )
-    ws.VectorSet( ws.rte_pos2, [] )   
+    ws.VectorSet(ws.rte_pos, 850e3)
+    ws.VectorSet(ws.rte_los, 180)
+    ws.VectorSet(ws.rte_pos2, [])
 
     # Checks
     ws.propmat_clearsky_agenda_checkedCalc()
@@ -132,22 +128,37 @@ def main(nelem=1125, model="O2-TRE05", verbosity = 2):
     ws.atmgeom_checkedCalc()
     ws.cloudbox_checkedCalc()
 
-
     # Perform RT calculations
     ws.iyCalc()
-    
-    #=====================================================================
-            #### Output ####
-    #=====================================================================
+
+    # =====================================================================
+    #         Output #
+    # =====================================================================
 
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
     # Store results
-    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml" )
-    ws.WriteXML( "ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml" )
+    ws.WriteXML("ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml")
+    ws.WriteXML("ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml")
 
     print("Success! We reached the finish!")
+    return tt_time
+
+
+def main():
+    for nelem in [1125]:
+        run_arts(nelem)
+
+
+def tt(d={}):
+    d['O2-TRE05'] = "2021-08-29_0126"
+    d['O2-AER'] = "2021-08-30_1630"
+    d['O2-MPM2020'] = "2021-08-29_0205"
+
+    for f in d.keys():
+        print(d[f])
 
 
 if __name__ == "__main__":
-    for nelem in [1125]:
-        main(nelem)
+    #d = {'name': 'testname', }
+    #tt(d)
+    main()

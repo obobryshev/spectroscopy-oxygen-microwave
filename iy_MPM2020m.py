@@ -6,13 +6,11 @@ Parameters:
 Returns:
 """
 
-import numpy as np
-import pyarts as py
-import pyarts.workspace
-import datetime
 
-def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
-    
+def run_arts(nelem=1125, model="O2-MPM2020", verbosity=1):
+    import pyarts as py
+    import datetime
+
     ws = py.workspace.Workspace(verbosity)
     ws.execute_controlfile("general/general.arts")
     ws.execute_controlfile("general/continua.arts")
@@ -24,23 +22,25 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
     ws.AtmosphereSet1D()
     ws.IndexSet(ws.stokes_dim, 1)
     ws.StringSet(ws.iy_unit, "PlanckBT")
-    
+
     # monochromatic frequency grid
     # VectorNLinSpace( 	out, nelem, start, stop )
-    ws.VectorNLinSpace( ws.f_grid, nelem, 5e9, 500e9 )
+    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 500e9)
 
-    ########    common_metmm.arts
+    #    common_metmm.arts
     ws.output_file_formatSetZippedAscii()
     ws.NumericSet(ws.ppath_lmax, float(250))
 
     # Agenda for scalar gas absorption calculation
     ws.Touch(ws.abs_nlte)
+
     @py.workspace.arts_agenda
     def abs_xsec_agenda(ws):
         ws.Ignore(ws.abs_nlte)
         ws.abs_xsec_per_speciesInit()
         ws.abs_xsec_per_speciesAddPredefinedO2MPM2020()
         ws.abs_xsec_per_speciesAddConts()
+
     ws.Copy(ws.abs_xsec_agenda, abs_xsec_agenda)
 
     # Surface
@@ -65,6 +65,7 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
     ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 
     # Set propmat_clearsky_agenda to use on-the-fly absorption
+
     @py.workspace.arts_agenda
     def propmat_clearsky_agenda(ws):
         ws.Ignore(ws.rtp_mag)
@@ -73,16 +74,16 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
         ws.propmat_clearskyAddXsecAgenda()
         ws.propmat_clearskyAddLines()
         ws.propmat_clearskyForceNegativeToZero()
+
     ws.Copy(ws.propmat_clearsky_agenda, propmat_clearsky_agenda)
-    
+
     # Spectroscopy
     species = [
         "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
         "O2-MPM2020",
-        #"N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
-        #"O3",
+        "N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
+        "O3",
     ]
-    # ws.abs_speciesSet( species=species )
 
     ws.abs_speciesSet(
         species=species,
@@ -91,7 +92,7 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
     ws.ReadARTSCAT(
         filename="instruments/metmm/abs_lines_metmm.xml.gz",
         fmin=0.0,
-        fmax=float(1e99),
+        fmax=float(1e12),
         globalquantumnumbers="",
         localquantumnumbers="",
         normalization_option="None",
@@ -121,7 +122,6 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
     ws.Extract(ws.z_surface, ws.z_field, 0)
     ws.Extract(ws.t_surface, ws.t_field, 0)
 
-    
     ws.abs_xsec_agenda_checkedCalc()
     ws.lbl_checkedCalc()
 
@@ -130,17 +130,17 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
 
     # No scattering
     ws.cloudboxOff()
-    
+
     # No sensor
     ws.sensorOff()
-    
+
     # Definition of sensor position and LOS
     # ---
-    #MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
-    #MatrixSet( sensor_los, [ 180 ] )
-    ws.VectorSet( ws.rte_pos, 850e3 )
-    ws.VectorSet( ws.rte_los, 180 )
-    ws.VectorSet( ws.rte_pos2, [] )   
+    # MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
+    # MatrixSet( sensor_los, [ 180 ] )
+    ws.VectorSet(ws.rte_pos, 850e3)
+    ws.VectorSet(ws.rte_los, 180)
+    ws.VectorSet(ws.rte_pos2, [])
 
     # Checks
     ws.propmat_clearsky_agenda_checkedCalc()
@@ -148,22 +148,22 @@ def main(nelem=1125, model="O2-MPM2020", verbosity = 2):
     ws.atmgeom_checkedCalc()
     ws.cloudbox_checkedCalc()
 
-
     # Perform RT calculations
     ws.iyCalc()
-    
-    #=====================================================================
-            #### Output ####
-    #=====================================================================
+
+    # ====================================================================
+    # Output ####
+    # ====================================================================
 
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
     # Store results
-    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml" )
-    ws.WriteXML( "ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml" )
+    ws.WriteXML('ascii', ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml")
+    ws.WriteXML("ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml")
 
     print("Success! We reached the finish!")
+    return tt_time
 
 
 if __name__ == "__main__":
     for nelem in [1125]:
-        main(nelem)
+        run_arts(nelem)
