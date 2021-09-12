@@ -45,7 +45,7 @@ def read_arts_output_models(timestamp={}):
 
     if not timestamp:
         timestamp['O2-TRE05'] = "2021-08-29_0126"
-        timestamp['O2-AER'] = "2021-08-30_1630"
+        timestamp['O2-AER'] = "2021-08-30_2245"
         timestamp['O2-MPM2020'] = "2021-08-29_0205"
 
     l = dict()
@@ -57,22 +57,26 @@ def read_arts_output_models(timestamp={}):
     # l_mpm = build_results_path(model="O2-MPM2020", tt_model=tt_mpm)
 
 
-    print('stop')
-    iy = list()
-    iy.append(np.squeeze(xml.load(l_tre[0])))
-    iy.append(np.squeeze(xml.load(l_aer[0])))
-    iy.append(np.squeeze(xml.load(l_mpm[0])))
-    fgrid = xml.load(l_tre[1]) / 1e9
+    for key in timestamp.keys():
+        l[key].append(np.squeeze(xml.load(l[key][0])))
+        l[key].append(xml.load(l[key][1]) / 1e9)
 
-    return iy, fgrid
+    return l
 
 
-def plot_any_range(iy, fgrid, start=5, end=500):
+def plot_any_range(xmldata, start=5, end=500):
     """
     min start=5, max end=500 GHz
     two plots absolute Tbs and diffs
     """
     import matplotlib.pyplot as plt
+
+    vocab = list(xmldata.keys())
+    iy = list()
+    for keys in xmldata.keys():
+        iy.append(xmldata[keys][2])
+    fgrid = xmldata[keys][-1]
+
 
     # Apply mask to subselect fgrid 50-60 GHz    
     mmask = (fgrid > start) & (fgrid < end)
@@ -82,10 +86,11 @@ def plot_any_range(iy, fgrid, start=5, end=500):
         b.append(f[mmask])
     iy = b.copy()
 
+    print('stop')
     fig, ax = plt.subplots()
-    ax.plot(fgrid, iy[0], label='TRE05')
-    ax.plot(fgrid, iy[1], label='AER')
-    ax.plot(fgrid, iy[2], label='MPM2020')
+    ax.plot(fgrid, iy[0], label=vocab[0][3:])  # TRE05
+    ax.plot(fgrid, iy[1], label=vocab[1][3:])  # AER
+    ax.plot(fgrid, iy[2], label=vocab[2][3:])  # MPM2020
     ax.set_xlabel('Frequency, GHz')  # ,  fontsize = 12)
     ax.legend()
     plt.show()
@@ -99,7 +104,7 @@ def plot_any_range(iy, fgrid, start=5, end=500):
 
 
 def main():
-    # first run arts with latest settings
+    # TODO: first run arts with latest settings
     import iy_AERm
     import iy_MPM2020m
     import iy_TRE05m
@@ -110,9 +115,10 @@ def main():
     # timestamp['O2-MPM2020'] = iy_MPM2020m.run_arts(verbosity=0)
 
     # TRE, AER, MPM
-    iy, fgrid = read_arts_output_models(timestamp)
+    xmldata = read_arts_output_models(timestamp)
+
     # plot_5_500GHz(iy, fgrid)
-    plot_any_range(iy, fgrid, start=5, end=500)
+    plot_any_range(xmldata, start=5, end=500)
     pass
 
 
