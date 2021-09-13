@@ -44,9 +44,9 @@ def read_arts_output_models(timestamp={}):
     from pyarts import xml
 
     if not timestamp:
-        timestamp['O2-TRE05'] = "2021-08-29_0126"
-        timestamp['O2-AER'] = "2021-08-30_2245"
-        timestamp['O2-MPM2020'] = "2021-08-29_0205"
+        timestamp['O2-TRE05'] = "2021-09-13_1537"
+        timestamp['O2-AER'] = "2021-09-13_1642"
+        timestamp['O2-MPM2020'] = "2021-09-13_1645"
 
     l = dict()
     for key in timestamp.keys():
@@ -86,7 +86,6 @@ def plot_any_range(xmldata, start=5, end=500):
         b.append(f[mmask])
     iy = b.copy()
 
-    print('stop')
     fig, ax = plt.subplots()
     ax.plot(fgrid, iy[0], label=vocab[0][3:])  # TRE05
     ax.plot(fgrid, iy[1], label=vocab[1][3:])  # AER
@@ -110,16 +109,16 @@ def main():
     import iy_TRE05m
 
     timestamp = dict()
-    # timestamp['O2-AER'] = iy_AERm.run_arts(verbosity=0)
-    # timestamp['O2-TRE05'] = iy_TRE05m.run_arts(verbosity=0)
-    # timestamp['O2-MPM2020'] = iy_MPM2020m.run_arts(verbosity=0)
+    #timestamp['O2-AER'] = iy_AERm.run_arts(verbosity=0)
+    #timestamp['O2-TRE05'] = iy_TRE05m.run_arts(verbosity=0)
+    #timestamp['O2-MPM2020'] = iy_MPM2020m.run_arts(verbosity=0)
+    #print(timestamp)
 
     # TRE, AER, MPM
     xmldata = read_arts_output_models(timestamp)
 
     # plot_5_500GHz(iy, fgrid)
     plot_any_range(xmldata, start=5, end=500)
-    pass
 
 
 if __name__ == "__main__":

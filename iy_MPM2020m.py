@@ -4,10 +4,11 @@
 Parameters:
 
 Returns:
+@author: alex
 """
 
 
-def run_arts(nelem=1125, model="O2-MPM2020", verbosity=1):
+def run_arts(nelem=1125, model="O2-MPM2020", verbosity=2):
     import pyarts as py
     import datetime
 
@@ -25,7 +26,7 @@ def run_arts(nelem=1125, model="O2-MPM2020", verbosity=1):
 
     # monochromatic frequency grid
     # VectorNLinSpace( 	out, nelem, start, stop )
-    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 500e9)
+    ws.VectorNLinSpace( ws.f_grid, nelem, 5e9, 500e9 )
 
     #    common_metmm.arts
     ws.output_file_formatSetZippedAscii()
@@ -74,7 +75,6 @@ def run_arts(nelem=1125, model="O2-MPM2020", verbosity=1):
         ws.propmat_clearskyAddXsecAgenda()
         ws.propmat_clearskyAddLines()
         ws.propmat_clearskyForceNegativeToZero()
-
     ws.Copy(ws.propmat_clearsky_agenda, propmat_clearsky_agenda)
 
     # Spectroscopy
@@ -92,7 +92,7 @@ def run_arts(nelem=1125, model="O2-MPM2020", verbosity=1):
     ws.ReadARTSCAT(
         filename="instruments/metmm/abs_lines_metmm.xml.gz",
         fmin=0.0,
-        fmax=float(1e12),
+        fmax=float(1e99),
         globalquantumnumbers="",
         localquantumnumbers="",
         normalization_option="None",
@@ -157,13 +157,17 @@ def run_arts(nelem=1125, model="O2-MPM2020", verbosity=1):
 
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
     # Store results
-    ws.WriteXML('ascii', ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml")
+    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml")
     ws.WriteXML("ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml")
 
     print("Success! We reached the finish!")
     return tt_time
 
 
-if __name__ == "__main__":
+def main():
     for nelem in [1125]:
         run_arts(nelem)
+
+
+if __name__ == "__main__":
+    main()

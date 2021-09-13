@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Parameters:
-
 Returns:
+
+@author: alex
 """
 
 
-def run_arts(nelem=1125, model="O2-TRE05", verbosity=1):
+def run_arts(nelem=1125, model="O2-TRE05", verbosity=2):
     import pyarts as py
     import datetime
 
@@ -149,16 +150,5 @@ def main():
         run_arts(nelem)
 
 
-def tt(d={}):
-    d['O2-TRE05'] = "2021-08-29_0126"
-    d['O2-AER'] = "2021-08-30_1630"
-    d['O2-MPM2020'] = "2021-08-29_0205"
-
-    for f in d.keys():
-        print(d[f])
-
-
 if __name__ == "__main__":
-    #d = {'name': 'testname', }
-    #tt(d)
     main()

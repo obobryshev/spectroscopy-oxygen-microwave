@@ -4,6 +4,7 @@
 Parameters:
 
 Returns:
+@author: alex
 """
 
 
@@ -73,17 +74,17 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
     )
 
     ws.ReadLBLRTM(
-        filename="/home/sasha/progs/oxygen_study/Playground/t7_projects/aer_catalogue/aer_v_3.2",
+        filename="aer_v_3.2",
         fmin=0.0,
-        fmax=float(1e12),
+        fmax=float(2e12),
         globalquantumnumbers="",
         localquantumnumbers="",
-        normalization_option="None",
+        normalization_option="SFS",
         mirroring_option="None",
         population_option="LTE",
         lineshapetype_option="VP",
         cutoff_option="None",
-        cutoff_value=750e9,
+        cutoff_value=-1.0,
         linemixinglimit_value=-1.0,
     )
 
