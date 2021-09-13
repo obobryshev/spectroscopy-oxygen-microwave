@@ -80,7 +80,7 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
         globalquantumnumbers="",
         localquantumnumbers="",
         normalization_option="SFS",
-        mirroring_option="None",
+        mirroring_option="None", # "Option Lorentz causes Exception error
         population_option="LTE",
         lineshapetype_option="VP",
         cutoff_option="None",
@@ -143,12 +143,12 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
     # =====================================================================
 
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
-    # Store results
-    ws.WriteXML("ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml")
-    ws.WriteXML("ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml")
 
     print("Success! We reached the finish!")
 
+    # Store results
+    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml" )
+    ws.WriteXML( "ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml" )
     return tt_time
 
 
