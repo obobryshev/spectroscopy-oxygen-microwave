@@ -4,15 +4,15 @@
 Parameters:
 
 Returns:
+@author: alex
 """
 
-import numpy as np
-import pyarts as py
-import pyarts.workspace
-import datetime
 
-def main(nelem, model="AER"):
-    verbosity = 2
+def run_arts(nelem=1125, model="O2-AER", verbosity=2):
+    import pyarts as py
+    import datetime
+
+    # verbosity = 2
     ws = py.workspace.Workspace(verbosity)
     ws.execute_controlfile("general/general.arts")
     ws.execute_controlfile("general/continua.arts")
@@ -24,12 +24,12 @@ def main(nelem, model="AER"):
     ws.AtmosphereSet1D()
     ws.IndexSet(ws.stokes_dim, 1)
     ws.StringSet(ws.iy_unit, "PlanckBT")
-    
+
     # monochromatic frequency grid
     # VectorNLinSpace( 	out, nelem, start, stop )
-    ws.VectorNLinSpace( ws.f_grid, nelem, 5e9, 500e9 )
+    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 500e9)
 
-    ########    common_metmm.arts
+    #    common_metmm.arts
     ws.output_file_formatSetZippedAscii()
     ws.NumericSet(ws.ppath_lmax, float(250))
 
@@ -58,14 +58,14 @@ def main(nelem, model="AER"):
     ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 
     # Set propmat_clearsky_agenda to use on-the-fly absorption
-    ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly )
+    ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly)
 
     # Spectroscopy
     species = [
         "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
         "O2, O2-v1v0CKDMT100",
-        #"N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
-        #"O3",
+        "N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
+        "O3",
     ]
     # ws.abs_speciesSet( species=species )
 
@@ -80,7 +80,7 @@ def main(nelem, model="AER"):
         globalquantumnumbers="",
         localquantumnumbers="",
         normalization_option="SFS",
-        mirroring_option="Lorentz",
+        mirroring_option="None", # "Option Lorentz causes Exception error
         population_option="LTE",
         lineshapetype_option="VP",
         cutoff_option="None",
@@ -100,122 +100,62 @@ def main(nelem, model="AER"):
         option="ByLine", value=5e9, species_tag="O3"
     )
 
-    ws.VectorSetConstant(ws.surface_scalar_reflectivity, 1, 0.4)
+    ws.VectorSetConstant(ws.surface_scalar_reflectivity, 1, 0.05)
 
-    ws.ReadXML(ws.batch_atm_fields_compact, "testdata/garand_profiles.xml.gz")
-
-    ws.batch_atm_fields_compactAddConstant(
-        name="abs_species-O2", value=0.2095, condensibles=[]
-    )
-    ws.batch_atm_fields_compactAddConstant(
-        name="abs_species-N2", value=0.7808, condensibles=[]
-    )
+    # Atmospheric scenario
+    # A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+    ws.VectorNLogSpace(ws.p_grid, 900, 1013e2, 10.0)
+    ws.AtmRawRead(basename="planets/Earth/Fascod/midlatitude-summer/midlatitude-summer")
+    ws.AtmFieldsCalc(interp_order=3)
+    # get some surface properties from corresponding atmospheric fields
+    ws.Extract(ws.z_surface, ws.z_field, 0)
+    ws.Extract(ws.t_surface, ws.t_field, 0)
 
     ws.abs_xsec_agenda_checkedCalc()
     ws.lbl_checkedCalc()
-
-    # Setting the agenda for batch calculation 
-    # Garand profiles have 42 different. We will make RT calculations for all of them.
-    ws.ArrayOfMatrixCreate("out")
-    ws.ArrayOfMatrixCreate("temp_tensor")
-    ws.VectorCreate("temp_vector")
-    ws.MatrixCreate("temp_matrix")
-    
-    ws.IndexSet(ws.ybatch_index, 0)
-
-  
-    # Extract the atmospheric profiles for this case:
-    ws.Extract(
-        ws.atm_fields_compact, 
-        ws.batch_atm_fields_compact, 
-        ws.ybatch_index
-    )
-
-    # Split up *atm_fields_compact* to
-    # generate p_grid, t_field, z_field, vmr_field:
-    ws.AtmFieldsAndParticleBulkPropFieldFromCompact()
 
     # Optionally set Jacobian parameters.
     ws.jacobianOff()
 
     # No scattering
     ws.cloudboxOff()
-    
+
     # No sensor
     ws.sensorOff()
-    
+
     # Definition of sensor position and LOS
     # ---
-    #MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
-    #MatrixSet( sensor_los, [ 180 ] )
-    ws.VectorSet( ws.rte_pos, 850e3 )
-    ws.VectorSet( ws.rte_los, 180 )
-    ws.VectorSet( ws.rte_pos2, [] )   
-
-    # get some surface properties from corresponding atmospheric fields
-    ws.Extract( ws.z_surface, ws.z_field, 0 )
-    ws.Extract( ws.t_surface, ws.t_field, 0 )
+    ws.VectorSet(ws.rte_pos, 850e3)
+    ws.VectorSet(ws.rte_los, 180)
+    ws.VectorSet(ws.rte_pos2, [])
 
     # Checks
-    #sensor_checkedCalc
     ws.propmat_clearsky_agenda_checkedCalc()
     ws.atmfields_checkedCalc()
     ws.atmgeom_checkedCalc()
     ws.cloudbox_checkedCalc()
 
-
-# Perform RT calculations
-    ws.ArrayOfStringSet( ws.iy_aux_vars, [
-      "Radiative background",
-      "Optical depth"
-      ]
-    )
-
+    # Perform RT calculations
     ws.iyCalc()
-    
-    #=====================================================================
-            #### Output ####
-    #=====================================================================
-      
-    # ybatchCalc braucht y, y_aux und jacobian als Output. Da diese nicht
-    # erzeugt werden, kann ARTS mit Touch() mitgeteilt werden, dass die 
-    # Variable benutzt wurde.
-    ws.Touch( ws.y )
-    ws.Touch( ws.y_aux )
-    ws.Touch( ws.jacobian )
 
-    # Zusammenfassen aller Output-Variablen in die Variable out
+    # =====================================================================
+    #### Output ####
+    # =====================================================================
 
-    ws.Matrix1ColFromVector( ws.temp_matrix, ws.f_grid )
-    ws.Append( ws.out, ws.temp_matrix )
-
-    ws.Matrix1ColFromVector( ws.temp_matrix, ws.p_grid )
-    ws.Append( ws.out, ws.temp_matrix )
-
-    ws.Reduce( ws.temp_vector, ws.z_field )
-    ws.Matrix1ColFromVector( ws.temp_matrix, ws.temp_vector )
-    ws.Append( ws.out, ws.temp_matrix )
-
-    ws.Reduce( ws.temp_vector, ws.t_field )
-    ws.Matrix1ColFromVector( ws.temp_matrix, ws.temp_vector )
-    ws.Append( ws.out, ws.temp_matrix )
-
-    ws.Append( ws.out, ws.iy )
-
-    #Print(iy_aux)
-    #Exit
-    
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
-
-# ====================================================================
-
-# Store results
-    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml" )
-    ws.WriteXML( "ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml" )
 
     print("Success! We reached the finish!")
 
+    # Store results
+    ws.WriteXML( "ascii", ws.f_grid, "Output/fgrid_" + model + "_" + tt_time + ".xml" )
+    ws.WriteXML( "ascii", ws.iy, "Output/iy_" + model + "_midlat-s_" + tt_time + ".xml" )
+    return tt_time
+
+
+def main():
+    for nelem in [1125]:
+        run_arts(nelem)
+
 
 if __name__ == "__main__":
-    for nelem in [1125]:
-        main(nelem)
+    main()
