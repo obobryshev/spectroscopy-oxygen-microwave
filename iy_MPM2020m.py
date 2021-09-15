@@ -39,6 +39,7 @@ def run_arts(nelem=1125, model="O2-MPM2020", verbosity=2):
     def abs_xsec_agenda(ws):
         ws.Ignore(ws.abs_nlte)
         ws.abs_xsec_per_speciesInit()
+        #ws.propmat_clearskyAddPredefinedO2MPM2020()
         ws.abs_xsec_per_speciesAddConts()
 
     ws.Copy(ws.abs_xsec_agenda, abs_xsec_agenda)

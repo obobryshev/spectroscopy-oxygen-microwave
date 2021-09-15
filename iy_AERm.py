@@ -80,7 +80,7 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
         globalquantumnumbers="",
         localquantumnumbers="",
         normalization_option="SFS",
-        mirroring_option="None", # "Option Lorentz causes Exception error
+        mirroring_option="Lorentz",
         population_option="LTE",
         lineshapetype_option="VP",
         cutoff_option="None",
