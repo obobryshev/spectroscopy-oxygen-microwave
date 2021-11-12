@@ -26,7 +26,7 @@ def run_arts(nelem=1125, model="O2-TRE05", verbosity=2):
 
     # monochromatic frequency grid
     # VectorNLinSpace( 	out, nelem, start, stop )
-    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 500e9)
+    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 1500e9)
 
     #    common_metmm.arts
     ws.output_file_formatSetZippedAscii()

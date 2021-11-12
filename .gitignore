@@ -1,5 +1,15 @@
 .idea
+.pytest_cache
 __pycache__
 Output
+input
+test
 aer_v_3.2
 results.py
+iy_MPM2020_ybatch.py
+lin_1155_2017-10-21T14-34-33_vertical.xml
+lin_1433_2017-10-20T12-10-99_vertical.xml
+lin_567_2017-10-19T13-29-77_vertical.xml
+lin_567_2017-10-19T13-29-77_vertical50.xml
+out.xml
+reduce_vertical_GRUAN.py

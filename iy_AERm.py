@@ -27,7 +27,7 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
 
     # monochromatic frequency grid
     # VectorNLinSpace( 	out, nelem, start, stop )
-    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 500e9)
+    ws.VectorNLinSpace(ws.f_grid, nelem, 5e9, 1500e9)
 
     #    common_metmm.arts
     ws.output_file_formatSetZippedAscii()
@@ -80,7 +80,7 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
         globalquantumnumbers="",
         localquantumnumbers="",
         normalization_option="SFS",
-        mirroring_option="Lorentz",
+        mirroring_option="None",  #  Lorentz
         population_option="LTE",
         lineshapetype_option="VP",
         cutoff_option="None",
@@ -88,13 +88,9 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
         linemixinglimit_value=-1.0,
     )
 
-    ws.abs_linesSetNormalization(option="VVH")
     ws.abs_lines_per_speciesCreateFromLines()
     ws.abs_lines_per_speciesSetCutoffForSpecies(
         option="ByLine", value=750e9, species_tag="H2O"
-    )
-    ws.abs_lines_per_speciesSetCutoffForSpecies(
-        option="ByLine", value=750e9, species_tag="N2"
     )
     ws.abs_lines_per_speciesSetCutoffForSpecies(
         option="ByLine", value=5e9, species_tag="O3"
@@ -139,7 +135,7 @@ def run_arts(nelem=1125, model="O2-AER", verbosity=2):
     ws.iyCalc()
 
     # =====================================================================
-    #### Output ####
+    #  Output ####
     # =====================================================================
 
     tt_time = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
