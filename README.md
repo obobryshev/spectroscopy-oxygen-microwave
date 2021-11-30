@@ -23,3 +23,4 @@ var factorial = n => (n < 2) ? 1 : n * factorial(n — 1);
 
 ## The proof {#proof .section color=red}
 
+## Check the results. for amsua
